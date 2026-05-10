@@ -218,6 +218,8 @@ const Monitor: React.FC<{
 };
 
 const Game: React.FC = () => {
+  const [screen, setScreen] = useState<Screen>("home");
+
   return (
     <Box
       sx={{
