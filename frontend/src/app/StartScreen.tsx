@@ -211,7 +211,7 @@ const StartScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => {
               createTherapist({ name: "Joever" }).then((therapist) => {
                 setCookie(
                   "therapy",
-                  JSON.stringify({ therapist_id: therapist.therapist_id }),
+                  JSON.stringify({ therapist_id: therapist.id }),
                   {
                     path: "/",
                   },

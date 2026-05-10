@@ -6,7 +6,7 @@ export interface Patient {
 }
 
 export interface Therapist {
-  therapist_id: number;
+  id: number;
   name: string;
 }
 
