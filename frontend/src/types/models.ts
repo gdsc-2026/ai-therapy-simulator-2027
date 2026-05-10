@@ -3,16 +3,16 @@ export interface Patient {
   model_name: string;
   personality: string;
   core_problem: string;
-  sessions?: Session[];
+  sessions?: TherapySession[];
 }
 
 export interface Therapist {
   id?: number;
   name: string;
-  sessions?: Session[];
+  sessions?: TherapySession[];
 }
 
-export interface Session {
+export interface TherapySession {
   id?: number;
   patient_id: number;
   therapist_id: number;
@@ -32,5 +32,13 @@ export interface Dialogue {
   user_response: string;
   is_custom: boolean;
   score: number;
-  session?: Session;
+  session?: TherapySession;
+}
+
+/**
+ * fetching the new responses to tell the AI.
+ */
+export interface DialogueOptions {
+  session_id: number;
+  ai_generated_responses: string[];
 }

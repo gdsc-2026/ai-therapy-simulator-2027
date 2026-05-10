@@ -1,5 +1,11 @@
 import { Axios } from "../components/axios";
-import type { Dialogue, Patient, Session, Therapist } from "../types/models";
+import type {
+  Dialogue,
+  Patient,
+  TherapySession,
+  Therapist,
+  DialogueOptions,
+} from "../types/models";
 
 export interface NewPatient {
   model_name: string;
@@ -19,13 +25,9 @@ export interface NewSession {
   final_score: number | null;
 }
 
-export interface NewDialogue {
-  session_id: number;
-  turn: number;
-  ai_prompt: string;
-  user_response: string;
+export interface NewDialogueResponse {
+  user_dialogue: string;
   is_custom: boolean;
-  score: number;
 }
 
 export const fetchPatients = async (): Promise<Patient[]> => {
@@ -50,18 +52,20 @@ export const createTherapist = async (
   return response.data;
 };
 
-export const fetchSessions = async (): Promise<Session[]> => {
-  const response = await Axios.get<Session[]>("/sessions");
+export const fetchSessions = async (): Promise<TherapySession[]> => {
+  const response = await Axios.get<TherapySession[]>("/sessions");
   return response.data;
 };
 
-export const fetchSession = async (id: number): Promise<Session> => {
-  const response = await Axios.get<Session>(`/sessions/${id}`);
+export const fetchSession = async (id: number): Promise<TherapySession> => {
+  const response = await Axios.get<TherapySession>(`/sessions/${id}`);
   return response.data;
 };
 
-export const createSession = async (payload: NewSession): Promise<Session> => {
-  const response = await Axios.post<Session>("/sessions", payload);
+export const createSession = async (
+  payload: NewSession,
+): Promise<TherapySession> => {
+  const response = await Axios.post<TherapySession>("/sessions", payload);
   return response.data;
 };
 
@@ -79,9 +83,22 @@ export const fetchDialoguesBySession = async (
   return response.data;
 };
 
-export const createDialogue = async (
-  payload: NewDialogue,
+export const fetchNextDialogue = async (
+  sessionId: number,
+): Promise<DialogueOptions> => {
+  const response = await Axios.get<DialogueOptions>(
+    `/sessions/${sessionId}/dialogue`,
+  );
+  return response.data;
+};
+
+export const sendDialogOption = async (
+  sessionId: number,
+  payload: NewDialogueResponse,
 ): Promise<Dialogue> => {
-  const response = await Axios.post<Dialogue>("/dialogues", payload);
+  const response = await Axios.post<Dialogue>(
+    `/sessions/${sessionId}/dialogue`,
+    payload,
+  );
   return response.data;
 };
