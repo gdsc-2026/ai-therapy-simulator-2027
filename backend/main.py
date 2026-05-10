@@ -40,17 +40,19 @@ class Session(SQLModel, table=True):
     ### Just for Python ###
     patient: Patient = Relationship(back_populates="sessions")
     therapist: Patient = Relationship(back_populates="sessions")
-    dialogue_turns: list["Dialogue"] = Relationship(back_populates="session")
+    dialogues: list["Dialogue"] = Relationship(back_populates="session")
 
 class Dialogue(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     session_id: int = Field(foreign_key="session.id")
     turn: int
     ai_prompt: str
-    response: str
+    user_response: str
+    is_custom: bool
+    score: int
 
     ### Just for Python ###
-    session: Session = Relationship(back_populates="dialogue_turns")
+    session: Session = Relationship(back_populates="dialogues")
 
 
 @asynccontextmanager
@@ -67,3 +69,20 @@ def default_endpoint():
     client = genai.Client(api_key=OOOOO_AI_KEY_TO_DESTROY_THE_WORLD)
     
     return {"You": "Loser"}
+
+# start_session
+# -> return session id
+
+# dialogue GET/POST
+# -> takes session id
+
+# end_session
+# -> takes a session id
+
+# get_session_dialogues
+# -> return list of dialogues
+
+# get_sessions
+# -> take user id
+
+# something about history/stats
