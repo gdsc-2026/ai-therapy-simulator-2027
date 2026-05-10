@@ -1,8 +1,12 @@
 import { Box, Stack } from "@mui/material";
 import { useState } from "react";
 import ScreenButton from "../components/ScreenButton";
+import { useCookies } from "react-cookie";
 
-const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({
+  open,
+  onClose,
+}) => {
   if (!open) return null;
 
   return (
@@ -33,7 +37,10 @@ const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, o
           width: 420,
           animation: "popIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)",
           "@keyframes popIn": {
-            from: { opacity: 0, transform: "translate(-50%, -52%) scale(0.95)" },
+            from: {
+              opacity: 0,
+              transform: "translate(-50%, -52%) scale(0.95)",
+            },
             to: { opacity: 1, transform: "translate(-50%, -50%) scale(1)" },
           },
         }}
@@ -109,7 +116,10 @@ const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, o
               ["04", "Reach session end with patient stable."],
               ["05", "Your license depends on it."],
             ].map(([num, rule]) => (
-              <Box key={num} sx={{ display: "flex", alignItems: "baseline", gap: 1.5 }}>
+              <Box
+                key={num}
+                sx={{ display: "flex", alignItems: "baseline", gap: 1.5 }}
+              >
                 <Box
                   sx={{
                     fontFamily: "monospace",
@@ -173,6 +183,7 @@ const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, o
 
 const GameScreen: React.FC = () => {
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [_, setCookie] = useCookies(["therapy"]);
 
   return (
     <Box
@@ -185,10 +196,25 @@ const GameScreen: React.FC = () => {
         justifyContent: "center",
       }}
     >
-      <Box sx={{ color: "#00e676", fontFamily: "monospace", fontSize: 18, opacity: 0.7 }}>
+      <Box
+        sx={{
+          color: "#00e676",
+          fontFamily: "monospace",
+          fontSize: 18,
+          opacity: 0.7,
+        }}
+      >
         AI Therapy Simulator
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
           <ScreenButton text="Start" />
+          <ScreenButton
+            text="hehehehaw"
+            onClick={() =>
+              setCookie("therapy", JSON.stringify({ therapist_id: 1 }), {
+                path: "/",
+              })
+            }
+          />
           <ScreenButton text="Rules" onClick={() => setRulesOpen(true)} />
         </Stack>
       </Box>
