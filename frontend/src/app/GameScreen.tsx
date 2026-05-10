@@ -1,13 +1,17 @@
-import { Box, Stack } from "@mui/material";
+import { Box, Divider, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import ScreenButton from "../components/ScreenButton";
-import { useCookies } from "react-cookie";
+import Chats from "./Chats";
 
-const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({
-  open,
-  onClose,
-}) => {
-  if (!open) return null;
+const GameScreen: React.FC = () => {
+  const [chatHistory] = useState<string[]>([
+    "Hello! I'm here to listen. How are you feeling today?",
+    "I'm feeling okay, thanks. How are you feeling?",
+    "I feel like a lol?",
+    "Huhhhhhh?",
+    "You are a bot.",
+    "HUHHHHHH??"
+  ]);
 
   return (
     <>
@@ -58,170 +62,43 @@ const RulesDialog: React.FC<{ open: boolean; onClose: () => void }> = ({
         >
           {/* Title bar */}
           <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 2.5,
-              pb: 1.5,
-              borderBottom: "1px solid rgba(0,230,118,0.2)",
-            }}
-          >
-            <Box
-              sx={{
-                fontFamily: "monospace",
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#00e676",
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-                opacity: 0.9,
-              }}
-            >
-              // rules.txt
-            </Box>
-
-            {/* Close button */}
-            <Box
-              onClick={onClose}
-              sx={{
-                width: 22,
-                height: 22,
-                borderRadius: "4px",
-                border: "1px solid rgba(255,255,255,0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "rgba(255,255,255,0.4)",
-                fontSize: 12,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                "&:hover": {
-                  borderColor: "rgba(0,230,118,0.5)",
-                  color: "#00e676",
-                  background: "rgba(0,230,118,0.07)",
-                },
-              }}
-            >
-              ✕
-            </Box>
-          </Box>
-
-          {/* Rules list */}
-          <Stack spacing={1.5} sx={{ mb: 3 }}>
-            {[
-              ["01", "Listen carefully to your patient."],
-              ["02", "Choose responses that build trust."],
-              ["03", "Avoid triggering a breakdown."],
-              ["04", "Reach session end with patient stable."],
-              ["05", "Your license depends on it."],
-            ].map(([num, rule]) => (
-              <Box
-                key={num}
-                sx={{ display: "flex", alignItems: "baseline", gap: 1.5 }}
-              >
-                <Box
-                  sx={{
-                    fontFamily: "monospace",
-                    fontSize: 10,
-                    color: "#00e676",
-                    opacity: 0.5,
-                    flexShrink: 0,
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  {num}
-                </Box>
-                <Box
-                  sx={{
-                    fontFamily: "monospace",
-                    fontSize: 12,
-                    color: "rgba(255,255,255,0.65)",
-                    lineHeight: 1.6,
-                    letterSpacing: "0.03em",
-                  }}
-                >
-                  {rule}
-                </Box>
-              </Box>
-            ))}
-          </Stack>
-
-          {/* Dismiss button */}
-          <Box
-            onClick={onClose}
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 1,
-              fontFamily: "monospace",
-              fontSize: 11,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#00e676",
-              opacity: 0.7,
-              cursor: "pointer",
-              border: "1px solid rgba(0,230,118,0.25)",
-              borderRadius: "4px",
-              px: 2,
-              py: 0.75,
-              transition: "all 0.15s",
-              "&:hover": {
-                opacity: 1,
-                background: "rgba(0,230,118,0.08)",
-                borderColor: "rgba(0,230,118,0.5)",
-              },
-            }}
-          >
-            ▶ Understood
-          </Box>
-        </Box>
-      </Box>
-    </>
-  );
-};
-
-const GameScreen: React.FC = () => {
-  const [rulesOpen, setRulesOpen] = useState(false);
-  const [_, setCookie] = useCookies(["therapy"]);
-
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Box
-        sx={{
-          color: "#00e676",
-          fontFamily: "monospace",
-          fontSize: 18,
-          opacity: 0.7,
-        }}
-      >
-        AI Therapy Simulator
-        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-          <ScreenButton text="Start" />
-          <ScreenButton
-            text="hehehehaw"
-            onClick={() =>
-              setCookie("therapy", JSON.stringify({ therapist_id: 1 }), {
-                path: "/",
-              })
-            }
-          />
-          <ScreenButton text="Rules" onClick={() => setRulesOpen(true)} />
+    <Box sx={{ color: "#00e676", fontFamily: "monospace", fontSize: 18, opacity: 0.7 }}>
+        <Typography sx={{ fontWeight: 'bold', color: "#00e676", fontFamily: "monospace", fontSize: 16 }}>
+            GROK
+        </Typography>
+        <Divider sx={{ borderColor: "#00e676", my: 1 }} />
+        <Chats chatHistory={chatHistory} />
+        <Divider sx={{ borderColor: "#00e676", my: 1 }} />
+        <Stack direction="row" spacing={10} sx={{ mt: 2 }}>
+            <ScreenButton text="Option 1" />
+            <ScreenButton text="Option 2" />
+            <ScreenButton text="Option 3" />
         </Stack>
-      </Box>
-
-      <RulesDialog open={rulesOpen} onClose={() => setRulesOpen(false)} />
+        <TextField
+            variant="outlined"
+            fullWidth
+            placeholder="Enter a custom response"
+            sx={{
+                "padding-top": "8px",
+                "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                        borderColor: "#00e676",
+                    },
+                    "&:hover fieldset": {
+                        borderColor: "#00e676",
+                    },
+                    "&.Mui-focused fieldset": {
+                        borderColor: "#00e676",
+                    },
+                    input: {
+                        color: "#00e676",
+                        fontFamily: "monospace",
+                    },
+                },
+            }}
+        />
     </Box>
   );
-};
+}
 
 export default GameScreen;

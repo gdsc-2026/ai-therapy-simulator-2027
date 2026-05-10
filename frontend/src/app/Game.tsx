@@ -1,8 +1,11 @@
 import { Box } from "@mui/material";
 import grokIcon from "../assets/grokIcon.png";
+import StartScreen from "./StartScreen";
+import { useState } from "react";
 import GameScreen from "./GameScreen";
 import usePatient from "./screens/usePatientLogic";
 import { useCookies } from "react-cookie";
+type Screen = "home" | "start";
 
 const Monitor: React.FC<{
   children?: React.ReactNode;
@@ -215,7 +218,6 @@ const Monitor: React.FC<{
 };
 
 const Game: React.FC = () => {
-  usePatient();
   return (
     <Box
       sx={{
@@ -236,7 +238,10 @@ const Game: React.FC = () => {
           />
         }
       >
-        {<GameScreen />}
+        {screen === "home" && <GameScreen />}
+        {screen === "start" && (
+          <StartScreen onStart={() => setScreen("start")} />
+        )}
       </Monitor>
     </Box>
   );
