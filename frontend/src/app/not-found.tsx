@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 
 const NotFound: React.FC = () => {
-  return <Box>Not found.</Box>;
+  return <Box>404 Not Found.</Box>;
 };
 
 export default NotFound;
