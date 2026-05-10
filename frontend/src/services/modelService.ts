@@ -18,8 +18,8 @@ export interface NewTherapist {
 }
 
 export interface NewSession {
-  patient_id: number;
   therapist_id: number;
+  patient_id: number | null;
   started_at: string;
   is_successful: boolean | null;
   final_score: number | null;
