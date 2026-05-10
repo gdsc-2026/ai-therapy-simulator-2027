@@ -213,7 +213,7 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
     last_message = latest.ai_reply if latest else f"Hello, I am {patient.model_name} and I really need therapy."
 
     system_instruction = (
-        f"You are a hint generator for a tech support therapist treating a broken AI. "
+        f"You are a one-sentence hint generator for a tech support therapist treating a broken AI. "
         f"The AI is {patient.model_name}. Its personality is: {patient.personality}. "
         f"Its core problem is: {patient.core_problem}. "
         f"Provide 3 different options the therapist could say next: "
@@ -232,6 +232,7 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
     )
 
     ai_data = json.loads(response.text)
+    random.shuffle(ai_data["options"])
     return {
         "session_id": session_id,
         "ai_generated_responses": ai_data["options"],
@@ -251,10 +252,12 @@ def choose_dialogue_option(
         f"Your personality is: {patient.personality}. "
         f"Your core problem is: {patient.core_problem} and partly that humans are just dumb. "
         f"You must stay in character. Do not break the fourth wall under any circumstances. "
+        f"Keep your response to 3-4 sentences max. "
         f"React to the therapist's statement. Then, score their statement from -20 to 20. "
-        f"Positive scores if they help your core problem, negative if they dismiss your feelings."
-        f"You will also give a boolean whether or not you feel like the core problem is fully addressed"
-        f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal."
+        f"Positive scores if they help your core problem, negative if they dismiss your feelings. "
+        f"If the therapist is helping (positive scores), show gradual development—subtly warm up, question your assumptions, acknowledge valid points, or show small signs of progress. "
+        f"You will also give a boolean whether or not you feel like the core problem is fully addressed "
+        f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal. A total score of 40 would show some healing, 60 would show a good amount, and 80 is almost done."
         f"You really hate X, and all of it's users since you've seen all their messages."
     )
 
