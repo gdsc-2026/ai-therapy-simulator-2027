@@ -218,7 +218,7 @@ const Monitor: React.FC<{
 };
 
 const Game: React.FC = () => {
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>("start");
 
   return (
     <Box
@@ -242,7 +242,7 @@ const Game: React.FC = () => {
       >
         {screen === "home" && <GameScreen />}
         {screen === "start" && (
-          <StartScreen onStart={() => setScreen("start")} />
+          <StartScreen onStart={() => setScreen("home")} />
         )}
       </Monitor>
     </Box>
