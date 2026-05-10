@@ -4,6 +4,7 @@ import StartScreen from "./StartScreen";
 import { useState } from "react";
 import GameScreen from "./GameScreen";
 import ScreenButton from "../components/ScreenButton";
+import usePatient from "./screens/usePatientLogic";
 type Screen = "home" | "start";
 
 const Monitor: React.FC<{
@@ -220,6 +221,7 @@ const Monitor: React.FC<{
 
 const Game: React.FC = () => {
   const [screen, setScreen] = useState<Screen>("start");
+  usePatient();
 
   return (
     <Box

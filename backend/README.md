@@ -1,25 +1,13 @@
-# One Time Setup
+# Backend Setup
 
 ```
-python -m venv venv
+py -m venv venv
 venv\Scripts\activate
-```
-
-Then:
-
-```
-pip install -r requirements.txt
 ```
 
 # Running
 
-Enter the Virtual Environment:
-
-```
-venv\Scripts\activate
-```
-
-Run For Development:
+For Development:
 
 ```
 uvicorn main:app --reload

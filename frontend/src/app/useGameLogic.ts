@@ -13,9 +13,9 @@ import type { Dialogue, DialogueOptions } from "../types/models";
 
 const useGameLogic = () => {
   const { sessions, setTherapistId, therapistId } = useContext(SessionContext);
-  const { selectedSessionId, setSelectedSessionId } = useContext(
-    SelectedSessionContext,
-  );
+  const [selectedSessionId, setSelectedSessionId] = useState<
+    number | undefined
+  >();
   const [dialogues, setDialogues] = useState<Dialogue[]>([]);
   const [dialogueOptions, setDialogueOptions] = useState<
     DialogueOptions | undefined
@@ -37,6 +37,7 @@ const useGameLogic = () => {
 
   const resumeSession = useCallback(
     async (sessionId: number) => {
+      console.log("fetching by ", sessionId);
       setSelectedSessionId(sessionId);
       const sessionDialogues = await fetchDialoguesBySession(sessionId);
       setDialogues(sessionDialogues);

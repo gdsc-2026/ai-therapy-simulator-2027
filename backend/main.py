@@ -8,10 +8,15 @@ from pydantic import BaseModel, Field as PydanticField
 import json
 import os
 import random
+from fastapi.middleware.cors import CORSMiddleware
 
 from database import engine, get_db
 from schema import Patient, Therapist, TherapySession, Dialogue
 from patients import grok_models, personalities, core_problems
+
+origins = [
+    "http://localhost:5173",
+]
 
 OOOOO_AI_KEY_TO_DESTROY_THE_WORLD = os.getenv("GOOGLE_AI_KEY")
 spooky_evil_model_we_love = "gemini-3.1-flash-lite-preview"
@@ -23,6 +28,14 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 client = genai.Client(api_key=OOOOO_AI_KEY_TO_DESTROY_THE_WORLD)
 
