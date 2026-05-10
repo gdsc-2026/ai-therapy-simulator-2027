@@ -8,10 +8,15 @@ from pydantic import BaseModel, Field as PydanticField
 import json
 import os
 import random
+from fastapi.middleware.cors import CORSMiddleware
 
 from database import engine, get_db
 from schema import Patient, Therapist, TherapySession, Dialogue
 from patients import grok_models, personalities, core_problems
+
+origins = [
+    "http://localhost:5173",
+]
 
 OOOOO_AI_KEY_TO_DESTROY_THE_WORLD = os.getenv("GOOGLE_AI_KEY")
 
@@ -22,6 +27,14 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 client = genai.Client(api_key=OOOOO_AI_KEY_TO_DESTROY_THE_WORLD)
 
@@ -125,7 +138,7 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
             ).where(
                 TherapySession.therapist_id != payload.therapist_id
             )
-        patient = db.exec(statement).one_or_none()
+        patient = db.exec(statement).first()
         if patient:
             final_patient_id = patient.id
         else:
@@ -188,8 +201,11 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
         ),
     )
 
-    return response.text
-
+    ai_data = json.loads(response.text)
+    return {
+        "session_id": session_id,
+        "ai_generated_responses": ai_data["options"],
+    }
 @app.post("/sessions/{session_id}/dialogue")
 def choose_dialogue_option(
     session_id: int, 
@@ -233,7 +249,7 @@ def choose_dialogue_option(
 
     statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
     latest = db.exec(statement).first()
-    turn_number = latest if latest else 1
+    turn_number = latest.turn + 1 if latest else 1
 
     new_dialogue = Dialogue(
         session_id=session_id, 

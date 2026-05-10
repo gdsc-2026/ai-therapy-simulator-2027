@@ -4,7 +4,6 @@ import StartScreen from "./StartScreen";
 import { useState } from "react";
 import GameScreen from "./GameScreen";
 import usePatient from "./screens/usePatientLogic";
-import { useCookies } from "react-cookie";
 type Screen = "home" | "start";
 
 const Monitor: React.FC<{
@@ -219,6 +218,7 @@ const Monitor: React.FC<{
 
 const Game: React.FC = () => {
   const [screen, setScreen] = useState<Screen>("start");
+  usePatient();
 
   return (
     <Box
@@ -236,7 +236,7 @@ const Game: React.FC = () => {
           <img
             src={grokIcon}
             alt="icon"
-            style={{ width: 28, height: 28, borderRadius: 6 }}
+            style={{ width: 28, height: 28, borderRadius: 1 }}
           />
         }
       >
