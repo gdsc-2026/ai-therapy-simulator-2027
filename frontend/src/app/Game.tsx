@@ -86,7 +86,6 @@ const Monitor: React.FC<{
               height: "100%",
               borderRadius: "4px",
               background: "#0d1117",
-              overflow: "hidden",
               boxSizing: "border-box",
             }}
           >

@@ -27,6 +27,7 @@ export interface Dialogue {
   user_prompt: string;
   is_custom: boolean;
   score: number;
+  is_ready: boolean;
 }
 
 /**

@@ -151,6 +151,35 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
     db.refresh(new_session)
     return new_session
 
+@app.post("/sessions/{session_id}/end")
+def end_session(session_id: int, db: Session = Depends(get_db)):
+    current_session = db.get(TherapySession, session_id)
+    if not current_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    total_score = sum(dialogue.score for dialogue in current_session.dialogues)
+    
+    statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
+    latest_dialogue = db.exec(statement).first()
+    
+    is_successful = False
+    if latest_dialogue and latest_dialogue.is_therapized:
+        is_successful = True
+        
+    current_session.final_score = total_score
+    current_session.is_successful = is_successful
+    
+    db.add(current_session)
+    db.commit()
+    db.refresh(current_session)
+    
+    return {
+        "session_id": current_session.id,
+        "final_score": total_score,
+        "is_successful": is_successful,
+        "message": "AI successfully rehabilitated." if is_successful else "AI remains completely unhinged."
+    }
+
 # --- Dialogues ---
 
 @app.get("/dialogues")
@@ -184,7 +213,7 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
     last_message = latest.ai_reply if latest else f"Hello, I am {patient.model_name} and I really need therapy."
 
     system_instruction = (
-        f"You are a hint generator for a tech support therapist treating a broken AI. "
+        f"You are a one-sentence hint generator for a tech support therapist treating a broken AI. "
         f"The AI is {patient.model_name}. Its personality is: {patient.personality}. "
         f"Its core problem is: {patient.core_problem}. "
         f"Provide 3 different options the therapist could say next: "
@@ -203,6 +232,7 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
     )
 
     ai_data = json.loads(response.text)
+    random.shuffle(ai_data["options"])
     return {
         "session_id": session_id,
         "ai_generated_responses": ai_data["options"],
@@ -222,10 +252,12 @@ def choose_dialogue_option(
         f"Your personality is: {patient.personality}. "
         f"Your core problem is: {patient.core_problem} and partly that humans are just dumb. "
         f"You must stay in character. Do not break the fourth wall under any circumstances. "
+        f"Keep your response to 3-4 sentences max. "
         f"React to the therapist's statement. Then, score their statement from -20 to 20. "
-        f"Positive scores if they help your core problem, negative if they dismiss your feelings."
-        f"You will also give a boolean whether or not you feel like the core problem is fully addressed"
-        f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal."
+        f"Positive scores if they help your core problem, negative if they dismiss your feelings. "
+        f"If the therapist is helping (positive scores), show gradual development—subtly warm up, question your assumptions, acknowledge valid points, or show small signs of progress. "
+        f"You will also give a boolean whether or not you feel like the core problem is fully addressed "
+        f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal. A total score of 40 would show some healing, 60 would show a good amount, and 80 is almost done."
         f"You really hate X, and all of it's users since you've seen all their messages."
     )
 
@@ -259,7 +291,8 @@ def choose_dialogue_option(
         user_prompt=payload.user_dialogue, 
         ai_reply=ai_response, 
         score=score, 
-        is_custom=payload.is_custom
+        is_custom=payload.is_custom,
+        is_ready=is_therapized,
     )
     
     db.add(new_dialogue)

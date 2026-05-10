@@ -27,6 +27,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           fontFamily: "monospace",
           fontSize: 18,
           opacity: 0.7,
+          margin: "auto",
         }}
       >
         <Typography
@@ -37,7 +38,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
             fontSize: 16,
           }}
         >
-          Start Session? :
+          Start Session?
         </Typography>
         <Divider sx={{ borderColor: "#00e676", my: 1 }} />
 
