@@ -1,7 +1,6 @@
 import { Axios } from "../components/axios";
 import type {
   Dialogue,
-  Patient,
   TherapySession,
   Therapist,
   DialogueOptions,
@@ -30,16 +29,6 @@ export interface NewDialogueResponse {
   is_custom: boolean;
 }
 
-export const fetchPatients = async (): Promise<Patient[]> => {
-  const response = await Axios.get<Patient[]>("/patients");
-  return response.data;
-};
-
-export const createPatient = async (payload: NewPatient): Promise<Patient> => {
-  const response = await Axios.post<Patient>("/patients", payload);
-  return response.data;
-};
-
 export const fetchTherapists = async (): Promise<Therapist[]> => {
   const response = await Axios.get<Therapist[]>("/therapists");
   return response.data;
@@ -52,8 +41,10 @@ export const createTherapist = async (
   return response.data;
 };
 
-export const fetchSessions = async (): Promise<TherapySession[]> => {
-  const response = await Axios.get<TherapySession[]>("/sessions");
+export const fetchSessions = async (id: number): Promise<TherapySession[]> => {
+  const response = await Axios.get<TherapySession[]>("/sessions", {
+    params: { therapist_id: id },
+  });
   return response.data;
 };
 
