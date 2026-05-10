@@ -290,6 +290,7 @@ const Game: React.FC = () => {
             currentSessionId={selectedSessionId}
             dialogue={dialogues}
             endSession={endSession}
+            onClose={() => setScreen("start")}
           />
         )}
       </Monitor>

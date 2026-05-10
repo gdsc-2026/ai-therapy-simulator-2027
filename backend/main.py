@@ -163,7 +163,7 @@ def end_session(session_id: int, db: Session = Depends(get_db)):
     latest_dialogue = db.exec(statement).first()
     
     is_successful = False
-    if latest_dialogue and latest_dialogue.is_therapized:
+    if latest_dialogue and latest_dialogue.is_ready:
         is_successful = True
         
     current_session.final_score = total_score
