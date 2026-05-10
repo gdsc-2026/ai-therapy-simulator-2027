@@ -1,12 +1,16 @@
 import { Box } from "@mui/material";
 import grokIcon from "../assets/grokIcon.png";
+import StartScreen from "./StartScreen";
+import { useState } from "react";
 import GameScreen from "./GameScreen";
+import usePatient from "./screens/usePatientLogic";
+import { useCookies } from "react-cookie";
+type Screen = "home" | "start";
 
-
-const Monitor: React.FC<{ children?: React.ReactNode; icon?: React.ReactNode }> = ({
-  children,
-  icon,
-}) => {
+const Monitor: React.FC<{
+  children?: React.ReactNode;
+  icon?: React.ReactNode;
+}> = ({ children, icon }) => {
   return (
     <Box
       sx={{
@@ -23,7 +27,8 @@ const Monitor: React.FC<{ children?: React.ReactNode; icon?: React.ReactNode }> 
           width: 720,
           height: 460,
           borderRadius: "14px",
-          background: "linear-gradient(160deg, #2e2e2e 0%, #1a1a1a 60%, #111 100%)",
+          background:
+            "linear-gradient(160deg, #2e2e2e 0%, #1a1a1a 60%, #111 100%)",
           boxShadow: `
             0 0 0 1px #0a0a0a,
             0 2px 0 1px #3a3a3a inset,
@@ -213,6 +218,8 @@ const Monitor: React.FC<{ children?: React.ReactNode; icon?: React.ReactNode }> 
 };
 
 const Game: React.FC = () => {
+  const [screen, setScreen] = useState<Screen>("start");
+
   return (
     <Box
       sx={{
@@ -220,13 +227,23 @@ const Game: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 70%)",
+        background:
+          "radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 70%)",
       }}
     >
       <Monitor
-        icon={<img src={grokIcon} alt="icon" style={{ width: 28, height: 28, borderRadius: 6 }}/>}
+        icon={
+          <img
+            src={grokIcon}
+            alt="icon"
+            style={{ width: 28, height: 28, borderRadius: 6 }}
+          />
+        }
       >
-        {<GameScreen />}
+        {screen === "home" && <GameScreen />}
+        {screen === "start" && (
+          <StartScreen onStart={() => setScreen("home")} />
+        )}
       </Monitor>
     </Box>
   );
