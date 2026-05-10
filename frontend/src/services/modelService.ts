@@ -27,6 +27,13 @@ export interface NewDialogueResponse {
   is_custom: boolean;
 }
 
+export interface EndedSessionResponse {
+  session_id: number;
+  final_score: number;
+  is_successful: boolean;
+  message: string;
+}
+
 export const fetchTherapists = async (): Promise<Therapist[]> => {
   const response = await Axios.get<Therapist[]>("/therapists");
   return response.data;
@@ -55,6 +62,14 @@ export const createSession = async (
   payload: NewSession,
 ): Promise<TherapySession> => {
   const response = await Axios.post<TherapySession>("/sessions", payload);
+  return response.data;
+};
+export const endSessionGetResults = async (
+  id: number,
+): Promise<EndedSessionResponse> => {
+  const response = await Axios.post<EndedSessionResponse>(
+    `/sessions/${id}/end`,
+  );
   return response.data;
 };
 

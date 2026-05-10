@@ -2,12 +2,13 @@
 
 import { useCallback, useContext, useState } from "react";
 import { SessionContext } from "./contexts/sessionContext";
-import { SelectedSessionContext } from "./contexts/selectedSessionContext";
 import {
   createSession,
+  endSessionGetResults,
   fetchDialoguesBySession,
   fetchNextDialogue,
   sendDialogOption,
+  type EndedSessionResponse,
 } from "../services/modelService";
 import type { Dialogue, DialogueOptions } from "../types/models";
 
@@ -49,13 +50,15 @@ const useGameLogic = () => {
   );
 
   //returns the id of the session just ended
-  const endSession = useCallback((): number | undefined => {
-    const endedId = selectedSessionId;
+  const endSession = (): Promise<EndedSessionResponse> => {
+    const endedSessionId = selectedSessionId;
     setSelectedSessionId(undefined);
-    setDialogues([]);
     setDialogueOptions(undefined);
-    return endedId;
-  }, [selectedSessionId, setSelectedSessionId]);
+    if (endedSessionId == undefined) {
+      return Promise.resolve({} as unknown as EndedSessionResponse);
+    }
+    return endSessionGetResults(endedSessionId);
+  };
 
   const getDialogueOptions = useCallback((): DialogueOptions | undefined => {
     return dialogueOptions;

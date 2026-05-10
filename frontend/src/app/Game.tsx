@@ -1,4 +1,4 @@
-import { Box, TextField } from "@mui/material";
+import { Box, TextField, Tooltip } from "@mui/material";
 import grokIcon from "../assets/grokIcon.png";
 import StartScreen from "./StartScreen";
 import { useState } from "react";
@@ -6,7 +6,8 @@ import GameScreen from "./GameScreen";
 import ScreenButton from "../components/ScreenButton";
 import usePatient from "./screens/usePatientLogic";
 import useGameLogic from "./useGameLogic";
-type Screen = "home" | "start";
+import ResultScreen from "./ResultScreen";
+type Screen = "home" | "start" | "results";
 
 const Monitor: React.FC<{
   children?: React.ReactNode;
@@ -240,6 +241,14 @@ const Game: React.FC = () => {
   } = useGameLogic();
 
   const [customResponse, setCustomResponse] = useState("");
+  const [submittedResponse, setSubmittedResponse] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmitting = (response: string, promise: Promise<void>) => {
+    setSubmittedResponse(response);
+    setIsSubmitting(true);
+    promise.then(() => setIsSubmitting(false));
+  };
 
   return (
     <Box
@@ -277,6 +286,13 @@ const Game: React.FC = () => {
         {screen === "start" && (
           <StartScreen onStart={() => setScreen("home")} />
         )}
+        {screen === "results" && (
+          <ResultScreen
+            currentSessionId={selectedSessionId}
+            dialogue={dialogues}
+            endSession={endSession}
+          />
+        )}
       </Monitor>
 
       {screen === "home" && selectedSessionId && (
@@ -297,17 +313,18 @@ const Game: React.FC = () => {
               justifyContent: "space-between",
             }}
           >
+            {getDialogueOptions()?.ai_generated_responses.map((opt, idx) => (
+              <ScreenButton
+                text={`Option ${idx + 1}`}
+                onClick={() => handleSubmitting(opt, submitDialogueOption(idx))}
+                label={opt}
+                disabled={isSubmitting}
+              />
+            ))}
             <ScreenButton
-              text="Option 1"
-              onClick={() => submitDialogueOption(0)}
-            />
-            <ScreenButton
-              text="Option 2"
-              onClick={() => submitDialogueOption(1)}
-            />
-            <ScreenButton
-              text="Option 3"
-              onClick={() => submitDialogueOption(2)}
+              text={`End It`}
+              onClick={() => setScreen("results")}
+              disabled={isSubmitting}
             />
           </Box>
           <TextField
@@ -331,11 +348,15 @@ const Game: React.FC = () => {
                 },
               },
             }}
+            disabled={isSubmitting}
             value={customResponse}
             onChange={(e) => setCustomResponse(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                submitCustomDialogue(customResponse);
+                handleSubmitting(
+                  customResponse,
+                  submitCustomDialogue(customResponse),
+                );
                 setCustomResponse("");
               }
             }}
