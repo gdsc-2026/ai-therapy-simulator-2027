@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import NotFound from "./not-found";
+import Game from "./Game.tsx";
 
 /**
  * Defines all routes within the app
@@ -7,7 +7,7 @@ import NotFound from "./not-found";
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<Game />} />
     </Routes>
   );
 };
