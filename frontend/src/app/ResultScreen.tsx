@@ -22,7 +22,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
   }, [dialogueIndex]);
 
   const iterateIndex = () => {
-    if (dialogueIndex + 1 >= dialogue.length) {
+    if (dialogueIndex + 1 < dialogue.length) {
       setDialogueIndex(dialogueIndex + 1);
       setTimeout(iterateIndex, 1000);
     }
