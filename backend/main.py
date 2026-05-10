@@ -151,6 +151,35 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
     db.refresh(new_session)
     return new_session
 
+@app.post("/sessions/{session_id}/end")
+def end_session(session_id: int, db: Session = Depends(get_db)):
+    current_session = db.get(TherapySession, session_id)
+    if not current_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    total_score = sum(dialogue.score for dialogue in current_session.dialogues)
+    
+    statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
+    latest_dialogue = db.exec(statement).first()
+    
+    is_successful = False
+    if latest_dialogue and latest_dialogue.is_therapized:
+        is_successful = True
+        
+    current_session.final_score = total_score
+    current_session.is_successful = is_successful
+    
+    db.add(current_session)
+    db.commit()
+    db.refresh(current_session)
+    
+    return {
+        "session_id": current_session.id,
+        "final_score": total_score,
+        "is_successful": is_successful,
+        "message": "AI successfully rehabilitated." if is_successful else "AI remains completely unhinged."
+    }
+
 # --- Dialogues ---
 
 @app.get("/dialogues")
@@ -259,7 +288,8 @@ def choose_dialogue_option(
         user_prompt=payload.user_dialogue, 
         ai_reply=ai_response, 
         score=score, 
-        is_custom=payload.is_custom
+        is_custom=payload.is_custom,
+        is_ready=is_therapized,
     )
     
     db.add(new_dialogue)

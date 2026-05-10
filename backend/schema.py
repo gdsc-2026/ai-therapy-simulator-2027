@@ -42,6 +42,7 @@ class Dialogue(SQLModel, table=True):
     user_prompt: str
     is_custom: bool
     score: int
+    is_ready: bool
 
     ### Just for Python ###
     session: TherapySession = Relationship(back_populates="dialogues")
