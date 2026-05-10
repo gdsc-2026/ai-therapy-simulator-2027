@@ -114,7 +114,7 @@ def create_therapist(payload: NewTherapist, db: Session = Depends(get_db)):
     db.add(new_therapist)
     db.commit()
     db.refresh(new_therapist)
-    return {"therapist_id": new_therapist.id}
+    return new_therapist
 
 # --- Sessions ---
 
@@ -126,7 +126,7 @@ def get_sessions(therapist_id: int, db: Session = Depends(get_db)):
 @app.get("/sessions/{session_id}")
 def get_session(session_id: int, db: Session = Depends(get_db)):
     statement = select(TherapySession).where(TherapySession.id == session_id)
-    return db.exec(statement).all()
+    return db.exec(statement).one_or_none()
 
 @app.post("/sessions")
 def create_session(payload: NewSession, db: Session = Depends(get_db)):
@@ -148,7 +148,7 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
     db.add(new_session)
     db.commit()
     db.refresh(new_session)
-    return {"session_id": new_session.id}
+    return new_session
 
 # --- Dialogues ---
 
@@ -206,6 +206,7 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
         "session_id": session_id,
         "ai_generated_responses": ai_data["options"],
     }
+
 @app.post("/sessions/{session_id}/dialogue")
 def choose_dialogue_option(
     session_id: int, 
@@ -249,7 +250,7 @@ def choose_dialogue_option(
 
     statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
     latest = db.exec(statement).first()
-    turn_number = latest.turn + 1 if latest else 1
+    turn_number = (latest.turn + 1) if latest else 1
 
     new_dialogue = Dialogue(
         session_id=session_id, 

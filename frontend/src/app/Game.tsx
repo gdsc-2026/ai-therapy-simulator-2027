@@ -1,8 +1,9 @@
-import { Box } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import grokIcon from "../assets/grokIcon.png";
 import StartScreen from "./StartScreen";
 import { useState } from "react";
 import GameScreen from "./GameScreen";
+import ScreenButton from "../components/ScreenButton";
 import usePatient from "./screens/usePatientLogic";
 type Screen = "home" | "start";
 
@@ -38,7 +39,7 @@ const Monitor: React.FC<{
             0 8px 24px rgba(0,0,0,0.5)
           `,
           // Top/sides: 18px — bottom: taller to hold the icon bar
-          padding: "18px 18px 0px",
+          padding: "8px 8px 0px",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
@@ -119,8 +120,10 @@ const Monitor: React.FC<{
                 width: "100%",
                 height: "100%",
                 display: "flex",
+                paddingLeft: "auto",
+                paddingRight: "auto",
                 alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "flex-start",
               }}
             >
               {children}
@@ -225,10 +228,14 @@ const Game: React.FC = () => {
       sx={{
         minHeight: "100vh",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: 2,
         background:
           "radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 70%)",
+        overscrollBehavior: "none",
+        overflow: "hidden",
       }}
     >
       <Monitor
@@ -236,7 +243,7 @@ const Game: React.FC = () => {
           <img
             src={grokIcon}
             alt="icon"
-            style={{ width: 28, height: 28, borderRadius: 1 }}
+            style={{ width: 0, height: 0, borderRadius: 6 }}
           />
         }
       >
@@ -245,6 +252,53 @@ const Game: React.FC = () => {
           <StartScreen onStart={() => setScreen("home")} />
         )}
       </Monitor>
+
+      {screen === "home" && (
+        <Box
+          sx={{
+            width: 720,
+            maxWidth: "95vw",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1.5,
+              justifyContent: "space-between",
+            }}
+          >
+            <ScreenButton text="Option 1" />
+            <ScreenButton text="Option 2" />
+            <ScreenButton text="Option 3" />
+          </Box>
+          <TextField
+            variant="outlined"
+            fullWidth
+            placeholder="Enter a custom response"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#00e676",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#00e676",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#00e676",
+                },
+                input: {
+                  color: "#00e676",
+                  fontFamily: "monospace",
+                },
+              },
+            }}
+          />
+        </Box>
+      )}
     </Box>
   );
 };

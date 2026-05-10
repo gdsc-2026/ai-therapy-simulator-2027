@@ -1,25 +1,22 @@
-import { Box, Divider, Stack, TextField, Typography } from "@mui/material";
-import { useState } from "react";
-import ScreenButton from "../components/ScreenButton";
+import { Box, Divider, Typography, Stack } from "@mui/material";
 import Chats from "./Chats";
-import useGameLogic from "./useGameLogic";
+import ScreenButton from "../components/ScreenButton";
+import type { Dialogue, TherapySession } from "../types/models";
+export interface GameScreenProps {
+  dialogues: Dialogue[];
+  sessions: TherapySession[];
+  selectedSessionId: number;
+  startSession: () => void;
+  resumeSession: (id: number) => void;
+}
 
-const GameScreen: React.FC = () => {
-  const {
-    sessions,
-    therapistId,
-    setTherapistId,
-    selectedSessionId,
-    dialogues,
-    startSession,
-    resumeSession,
-    endSession,
-    getDialogueOptions,
-    submitCustomDialogue,
-    submitDialogueOption,
-  } = useGameLogic();
-
-  const [customResponse, setCustomResponse] = useState("");
+const GameScreen: React.FC<GameScreenProps> = ({
+  dialogues,
+  sessions,
+  selectedSessionId,
+  startSession,
+  resumeSession,
+}) => {
   const noActiveSessions = sessions.filter((s) => !s.final_score).length == 0;
   console.log(selectedSessionId, noActiveSessions);
   if (selectedSessionId == undefined) {
@@ -61,14 +58,20 @@ const GameScreen: React.FC = () => {
       </Box>
     );
   }
-
   return (
     <Box
       sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
         color: "#00e676",
         fontFamily: "monospace",
         fontSize: 18,
         opacity: 0.7,
+        width: "95%",
+        marginLeft: "auto",
+        marginRight: "auto",
       }}
     >
       <Typography
@@ -81,46 +84,10 @@ const GameScreen: React.FC = () => {
       >
         GROK
       </Typography>
-      <Divider sx={{ borderColor: "#00e676", my: "1rem" }} />
-      <Chats chatHistory={dialogues} />
       <Divider sx={{ borderColor: "#00e676", my: 1 }} />
-      {}
-      <Stack direction="row" spacing={10} sx={{ mt: 2 }}>
-        <ScreenButton text="Option 1" onClick={() => submitDialogueOption(0)} />
-        <ScreenButton text="Option 2" onClick={() => submitDialogueOption(1)} />
-        <ScreenButton text="Option 3" onClick={() => submitDialogueOption(2)} />
-      </Stack>
-      <TextField
-        variant="outlined"
-        fullWidth
-        placeholder="Enter a custom response"
-        sx={{
-          "padding-top": "8px",
-          "& .MuiOutlinedInput-root": {
-            "& fieldset": {
-              borderColor: "#00e676",
-            },
-            "&:hover fieldset": {
-              borderColor: "#00e676",
-            },
-            "&.Mui-focused fieldset": {
-              borderColor: "#00e676",
-            },
-            input: {
-              color: "#00e676",
-              fontFamily: "monospace",
-            },
-          },
-        }}
-        value={customResponse}
-        onChange={(e) => setCustomResponse(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            submitCustomDialogue(customResponse);
-            setCustomResponse("");
-          }
-        }}
-      />
+      <Box sx={{ flex: 1, minHeight: 0 }}>
+        <Chats chatHistory={dialogues} />
+      </Box>
     </Box>
   );
 };
