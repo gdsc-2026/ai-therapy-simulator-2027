@@ -19,6 +19,7 @@ origins = [
 ]
 
 OOOOO_AI_KEY_TO_DESTROY_THE_WORLD = os.getenv("GOOGLE_AI_KEY")
+spooky_evil_model_we_love = "gemini-3.1-flash-lite-preview"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -191,7 +192,7 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
     )
 
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model=spooky_evil_model_we_love,
         contents=f"The AI just said: '{last_message}'. What are my 3 options?",
         config=types.GenerateContentConfig(
             system_instruction=system_instruction,
@@ -232,7 +233,7 @@ def choose_dialogue_option(
     prelude = f"This is the session so far:\n{session_history}" if session_history else ""
 
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model=spooky_evil_model_we_love,
         contents=f"{prelude}Therapist: {payload.user_dialogue}",
         config=types.GenerateContentConfig(
             system_instruction=system_instruction,
