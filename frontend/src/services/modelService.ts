@@ -74,6 +74,13 @@ export const fetchDialoguesBySession = async (
   return response.data;
 };
 
+export const fetchLastDialogue = async (
+  sessionId: number,
+): Promise<Dialogue> => {
+  const response = await Axios.get(`/sessions/${sessionId}/last`);
+  return response.data;
+};
+
 export const fetchNextDialogue = async (
   sessionId: number,
 ): Promise<DialogueOptions> => {
@@ -86,10 +93,6 @@ export const fetchNextDialogue = async (
 export const sendDialogOption = async (
   sessionId: number,
   payload: NewDialogueResponse,
-): Promise<Dialogue> => {
-  const response = await Axios.post<Dialogue>(
-    `/sessions/${sessionId}/dialogue`,
-    payload,
-  );
-  return response.data;
+): Promise<void> => {
+  await Axios.post(`/sessions/${sessionId}/dialogue`, payload);
 };
