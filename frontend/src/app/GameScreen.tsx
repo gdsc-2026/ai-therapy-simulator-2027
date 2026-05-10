@@ -5,7 +5,7 @@ import type { Dialogue, TherapySession } from "../types/models";
 export interface GameScreenProps {
   dialogues: Dialogue[];
   sessions: TherapySession[];
-  selectedSessionId: number;
+  selectedSessionId: number | undefined;
   startSession: () => void;
   resumeSession: (id: number) => void;
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import GameScreen from "./GameScreen";
 import ScreenButton from "../components/ScreenButton";
 import usePatient from "./screens/usePatientLogic";
+import useGameLogic from "./useGameLogic";
 type Screen = "home" | "start";
 
 const Monitor: React.FC<{
@@ -26,6 +27,7 @@ const Monitor: React.FC<{
           position: "relative",
           width: 720,
           height: 460,
+          // overflow: "scroll",
           borderRadius: "14px",
           background:
             "linear-gradient(160deg, #2e2e2e 0%, #1a1a1a 60%, #111 100%)",
@@ -72,6 +74,7 @@ const Monitor: React.FC<{
             `,
             padding: "3px",
             boxSizing: "border-box",
+            overflowY: "scroll",
           }}
         >
           {/* Screen glass */}
@@ -221,6 +224,21 @@ const Monitor: React.FC<{
 const Game: React.FC = () => {
   const [screen, setScreen] = useState<Screen>("start");
   usePatient();
+  const {
+    sessions,
+    therapistId,
+    setTherapistId,
+    selectedSessionId,
+    dialogues,
+    startSession,
+    resumeSession,
+    endSession,
+    getDialogueOptions,
+    submitCustomDialogue,
+    submitDialogueOption,
+  } = useGameLogic();
+
+  const [customResponse, setCustomResponse] = useState("");
 
   return (
     <Box
@@ -246,13 +264,21 @@ const Game: React.FC = () => {
           />
         }
       >
-        {screen === "home" && <GameScreen />}
+        {screen === "home" && (
+          <GameScreen
+            dialogues={dialogues}
+            sessions={sessions}
+            resumeSession={resumeSession}
+            selectedSessionId={selectedSessionId}
+            startSession={startSession}
+          />
+        )}
         {screen === "start" && (
           <StartScreen onStart={() => setScreen("home")} />
         )}
       </Monitor>
 
-      {screen === "home" && (
+      {screen === "home" && selectedSessionId && (
         <Box
           sx={{
             width: 720,
@@ -270,9 +296,18 @@ const Game: React.FC = () => {
               justifyContent: "space-between",
             }}
           >
-            <ScreenButton text="Option 1" />
-            <ScreenButton text="Option 2" />
-            <ScreenButton text="Option 3" />
+            <ScreenButton
+              text="Option 1"
+              onClick={() => submitDialogueOption(0)}
+            />
+            <ScreenButton
+              text="Option 2"
+              onClick={() => submitDialogueOption(1)}
+            />
+            <ScreenButton
+              text="Option 3"
+              onClick={() => submitDialogueOption(2)}
+            />
           </Box>
           <TextField
             variant="outlined"
@@ -294,6 +329,14 @@ const Game: React.FC = () => {
                   fontFamily: "monospace",
                 },
               },
+            }}
+            value={customResponse}
+            onChange={(e) => setCustomResponse(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                submitCustomDialogue(customResponse);
+                setCustomResponse("");
+              }
             }}
           />
         </Box>
