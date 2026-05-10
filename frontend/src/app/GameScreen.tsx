@@ -1,6 +1,5 @@
-import { Box, Divider, Stack, TextField, Typography } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import { useState } from "react";
-import ScreenButton from "../components/ScreenButton";
 import Chats from "./Chats";
 
 const GameScreen: React.FC = () => {
@@ -16,10 +15,17 @@ const GameScreen: React.FC = () => {
   return (
     <Box
       sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
         color: "#00e676",
         fontFamily: "monospace",
         fontSize: 18,
         opacity: 0.7,
+        width: "95%",
+        marginLeft: "auto",
+        marginRight: "auto",
       }}
     >
       <Typography
@@ -33,36 +39,9 @@ const GameScreen: React.FC = () => {
         GROK
       </Typography>
       <Divider sx={{ borderColor: "#00e676", my: 1 }} />
-      <Chats chatHistory={chatHistory} />
-      <Divider sx={{ borderColor: "#00e676", my: 1 }} />
-      <Stack direction="row" spacing={10} sx={{ mt: 2 }}>
-        <ScreenButton text="Option 1" />
-        <ScreenButton text="Option 2" />
-        <ScreenButton text="Option 3" />
-      </Stack>
-      <TextField
-        variant="outlined"
-        fullWidth
-        placeholder="Enter a custom response"
-        sx={{
-          "padding-top": "8px",
-          "& .MuiOutlinedInput-root": {
-            "& fieldset": {
-              borderColor: "#00e676",
-            },
-            "&:hover fieldset": {
-              borderColor: "#00e676",
-            },
-            "&.Mui-focused fieldset": {
-              borderColor: "#00e676",
-            },
-            input: {
-              color: "#00e676",
-              fontFamily: "monospace",
-            },
-          },
-        }}
-      />
+      <Box sx={{ flex: 1, minHeight: 0 }}>
+        <Chats chatHistory={chatHistory} />
+      </Box>
     </Box>
   );
 };

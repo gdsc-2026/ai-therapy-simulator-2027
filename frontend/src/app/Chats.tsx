@@ -6,7 +6,7 @@ interface ChatsProps {
 
 const Chats: React.FC<ChatsProps> = ({ chatHistory }) => {
     return (
-        <Box sx={{ height: '30vh', overflowY: 'scroll', color: "#00e676", pr: 1 }}>
+        <Box sx={{ height: '100%', overflowY: 'auto', color: "#00e676", pr: 1 }}>
             {chatHistory.map((chat, index) => (
                 <Box key={index}>
                     <Box sx={{ display: 'flex', justifyContent: index % 2 === 0 ? 'flex-end' : 'flex-start' }}>

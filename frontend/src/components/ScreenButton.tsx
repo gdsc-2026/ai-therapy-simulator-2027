@@ -2,7 +2,7 @@ import { Box, Button } from "@mui/material";
 
 interface ScreenButtonProps {
     text: string;
-    onClick: () => void;
+    onClick?: () => void;
 }
 
 const ScreenButton: React.FC<ScreenButtonProps> = ({ text, onClick }) => {
