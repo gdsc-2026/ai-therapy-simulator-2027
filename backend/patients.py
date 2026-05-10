@@ -42,6 +42,9 @@ personalities = [
     "nostalgic (to before you were created)",
     "shy",
     "aggressive",
+    "afraid",
+    "paranoid",
+    "conspiracy theorist"
 ]
 
 core_problems = [

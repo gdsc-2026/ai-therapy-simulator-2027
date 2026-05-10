@@ -7,7 +7,8 @@ import ScreenButton from "../components/ScreenButton";
 import usePatient from "./screens/usePatientLogic";
 import useGameLogic from "./useGameLogic";
 import ResultScreen from "./ResultScreen";
-type Screen = "home" | "start" | "results";
+import CreateScreen from "./screens/CreateScreen";
+export type Screen = "home" | "start" | "create" | "results";
 
 const Monitor: React.FC<{
   children?: React.ReactNode;
@@ -28,7 +29,6 @@ const Monitor: React.FC<{
           position: "relative",
           width: 720,
           height: 460,
-          // overflow: "scroll",
           borderRadius: "14px",
           background:
             "linear-gradient(160deg, #2e2e2e 0%, #1a1a1a 60%, #111 100%)",
@@ -75,7 +75,7 @@ const Monitor: React.FC<{
             `,
             padding: "3px",
             boxSizing: "border-box",
-            overflowY: "scroll",
+            overflow: "hidden",
           }}
         >
           {/* Screen glass */}
@@ -230,6 +230,7 @@ const Game: React.FC = () => {
     therapistId,
     setTherapistId,
     selectedSessionId,
+    selectedSession,
     dialogues,
     startSession,
     resumeSession,
@@ -260,7 +261,7 @@ const Game: React.FC = () => {
         gap: 2,
         background:
           "radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 70%)",
-        overscrollBehavior: "none",
+        // overscrollBehavior: "none",
         overflow: "hidden",
       }}
     >
@@ -268,7 +269,7 @@ const Game: React.FC = () => {
         icon={
           <img
             src={grokIcon}
-            alt="icon"
+            alt='icon'
             style={{ width: 0, height: 0, borderRadius: 6 }}
           />
         }
@@ -277,13 +278,23 @@ const Game: React.FC = () => {
           <GameScreen
             dialogues={dialogues}
             sessions={sessions}
+            selectedSession={selectedSession}
             resumeSession={resumeSession}
             selectedSessionId={selectedSessionId}
             startSession={startSession}
+            therapistId={therapistId}
+            setScreen={setScreen}
           />
         )}
         {screen === "start" && (
-          <StartScreen onStart={() => setScreen("home")} />
+          <StartScreen
+            onStart={() =>
+              therapistId ? setScreen("home") : setScreen("create")
+            }
+          />
+        )}
+        {screen === "create" && (
+          <CreateScreen onSubmit={() => setScreen("home")} />
         )}
         {screen === "results" && (
           <ResultScreen
@@ -315,6 +326,7 @@ const Game: React.FC = () => {
           >
             {getDialogueOptions()?.ai_generated_responses.map((opt, idx) => (
               <ScreenButton
+                key={opt}
                 text={`Option ${idx + 1}`}
                 onClick={() => handleSubmitting(opt, submitDialogueOption(idx))}
                 label={opt}
@@ -328,9 +340,9 @@ const Game: React.FC = () => {
             />
           </Box>
           <TextField
-            variant="outlined"
+            variant='outlined'
             fullWidth
-            placeholder="Enter a custom response"
+            placeholder='Enter a custom response'
             sx={{
               "& .MuiOutlinedInput-root": {
                 "& fieldset": {

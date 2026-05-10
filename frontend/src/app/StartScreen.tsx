@@ -203,10 +203,14 @@ const StartScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => {
           opacity: 0.7,
         }}
       >
-        AI Therapy Simulator
-        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-          <ScreenButton
-            text="hehehehaw"
+        AI Therapy Simulator 2027
+        <Stack
+          direction='row'
+          spacing={2}
+          sx={{ mt: 2, justifyContent: "center" }}
+        >
+          {/* <ScreenButton
+            text='hehehehaw'
             onClick={() =>
               createTherapist({ name: "Joever" }).then((therapist) => {
                 setCookie(
@@ -219,9 +223,9 @@ const StartScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => {
                 return therapist;
               })
             }
-          />
-          <ScreenButton text="Start" onClick={onStart} />
-          <ScreenButton text="Rules" onClick={() => setRulesOpen(true)} />
+          /> */}
+          <ScreenButton text='Start' onClick={onStart} />
+          <ScreenButton text='Rules' onClick={() => setRulesOpen(true)} />
         </Stack>
       </Box>
 

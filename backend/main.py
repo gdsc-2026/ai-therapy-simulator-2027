@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
-from sqlmodel import SQLModel, Session, select, desc
+from sqlmodel import SQLModel, Session, select, desc, func
 from google import genai
 from google.genai import types
 from datetime import datetime
@@ -134,13 +134,15 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
     final_patient_id = payload.patient_id
 
     if not payload.patient_id:
-        statement = select(Patient).join(
-            TherapySession, Patient.id == TherapySession.patient_id
-            ).where(
-                TherapySession.therapist_id != payload.therapist_id
-            )
+        statement = (
+            select(Patient)
+            .join(TherapySession, Patient.id == TherapySession.patient_id)
+            .where(TherapySession.therapist_id != payload.therapist_id)
+            .order_by(func.random())
+        )
         patient = db.exec(statement).first()
-        if patient:
+        d20_for_new_patient = random.randint(1, 20)
+        if patient and d20_for_new_patient > 5:
             final_patient_id = patient.id
         else:
             final_patient_id = create_new_patient(db)

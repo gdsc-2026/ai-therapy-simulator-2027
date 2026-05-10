@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import type { Dialogue, TherapySession } from "../types/models";
+import { useEffect, useState, useRef } from "react";
+import type { Dialogue } from "../types/models";
 import Chats from "./Chats";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { type EndedSessionResponse } from "../services/modelService";
 import ScreenButton from "../components/ScreenButton";
 export interface ResultScreenProps {
-  currentSessionId: TherapySession;
+  currentSessionId: number | undefined;
   dialogue: Dialogue[];
   endSession: () => Promise<EndedSessionResponse>;
   onClose: () => void;
@@ -24,25 +24,43 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
   const [results, setResults] = useState<EndedSessionResponse | undefined>(
     undefined,
   );
+  const timerRef = useRef<number | undefined>(undefined);
+  const finishedRef = useRef(false);
 
-  useEffect(() => {
-    setScore(score + dialogue[dialogueIndex].score);
-  }, [dialogueIndex]);
-
+  // Advance through dialogues at fixed intervals and accumulate score.
   const iterateIndex = () => {
-    if (dialogueIndex + 1 < dialogue.length) {
-      setDialogueIndex(dialogueIndex + 1);
-      setTimeout(iterateIndex, 1000);
-    } else {
-      endSession().then((r) => {
-        setResults(r);
-        setShowFinal(true);
-      });
-    }
+    if (dialogue.length === 0) return;
+
+    setDialogueIndex((prev) => {
+      const next = prev + 1;
+      if (next < dialogue.length) {
+        setScore((s) => s + (dialogue[next]?.score ?? 0));
+        timerRef.current = window.setTimeout(iterateIndex, 1000);
+        return next;
+      }
+
+      // finished playback
+      if (!finishedRef.current) {
+        finishedRef.current = true;
+        endSession().then((r) => {
+          setResults(r);
+          setShowFinal(true);
+        });
+      }
+      return prev;
+    });
   };
 
   useEffect(() => {
-    setTimeout(iterateIndex, 1000);
+    if (dialogue.length === 0) return;
+    // initialize with first dialogue's score
+    setScore(dialogue[0]?.score ?? 0);
+    timerRef.current = window.setTimeout(iterateIndex, 1000);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -75,7 +93,12 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           >
             <Typography>{results?.message}</Typography>
             <Typography>Final Score {results?.final_score}</Typography>
-            <ScreenButton onClick={() => onClose()}>New Session</ScreenButton>
+            <ScreenButton
+              onClick={() => {
+                onClose();
+              }}
+              text='New Session'
+            />
           </Box>
         </>
       )}

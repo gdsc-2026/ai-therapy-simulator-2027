@@ -17,6 +17,7 @@ export interface TherapySession {
   started_at: string;
   is_successful?: boolean | null;
   final_score?: number | null;
+  patient?: Patient;
 }
 
 export interface Dialogue {
