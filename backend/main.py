@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from sqlmodel import Field, Session, SQLModel, create_engine
+from sqlmodel import Field, Relationship, SQLModel, create_engine
 from dotenv import load_dotenv
+from datetime import datetime, timezone
 import os
 from google import genai
 
@@ -11,11 +12,41 @@ OOOOO_AI_KEY_TO_DESTROY_THE_WORLD = os.getenv("GOOGLE_AI_KEY")
 
 engine = create_engine(DATABASE_URL)
 
-class ChatEntry(SQLModel, table=True):
+# The AIs
+class Patient(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    user_id: int
-    prompt: str
+    model_name: str = Field(index=True)
+    personality: str
+    core_problem: str
+
+    # Just for python
+    sessions: list["TherapySession"] = Relationship(back_populates="grok_patient")
+
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+
+class TherapySession(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    grok_id: int = Field(foreign_key="patient.id")
+    user_id: int = Field(foreign_key="user.id")
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    is_successful: bool | None = Field(default=None)
+    final_score: int | None = Field(default=None)
+
+    # Just for python
+    grok_patient: Patient = Relationship(back_populates="sessions")
+    dialogue_turns: list["Dialogue"] = Relationship(back_populates="session")
+
+class Dialogue(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    session_id: int = Field(foreign_key="therapysession.id")
+    turn: int
+    ai_prompt: str
     response: str
+
+    # Just for python
+    session: TherapySession = Relationship(back_populates="dialogue_turns")
 
 
 @asynccontextmanager
