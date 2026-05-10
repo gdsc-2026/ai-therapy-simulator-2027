@@ -1,13 +1,17 @@
-import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel, Session, select, desc
 from google import genai
+from google.genai import types
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field as PydanticField
+import json
+import os
+import random
 
 from database import engine, get_db
 from schema import Patient, Therapist, TherapySession, Dialogue
+from patients import grok_models, personalities, core_problems
 
 OOOOO_AI_KEY_TO_DESTROY_THE_WORLD = os.getenv("GOOGLE_AI_KEY")
 
@@ -21,14 +25,35 @@ app = FastAPI(lifespan=lifespan)
 
 client = genai.Client(api_key=OOOOO_AI_KEY_TO_DESTROY_THE_WORLD)
 
+######################
+### UTIL FUNCTIONS ###
+######################
+
+def create_new_patient(db: Session = Depends(get_db)) -> int:
+    model = grok_models[random.randint(0, len(grok_models) - 1)]
+    personality = personalities[random.randint(0, len(personalities) - 1)]
+    core_problem = core_problems[random.randint(0, len(core_problems) - 1)]
+    new_patient = Patient(model_name=model, personality=personality, core_problem=core_problem)
+    db.add(new_patient)
+    db.commit()
+    db.refresh(new_patient)
+    return new_patient.id
+
+def full_session_string(session: TherapySession, db: Session = Depends(get_db)) -> str:
+    model = session.patient.model_name
+    full_text = ""
+
+    # should always be sorted by asc in the Relationship
+    for dialogue in session.dialogues:
+        full_text += f"Therapist: {dialogue.user_prompt} \n"
+        full_text += f"{model} (you): {dialogue.ai_reply} \n"
+    
+    return full_text
+
+
 #######################
 ### PAYLOAD SCHEMAS ###
 #######################
-
-class NewPatient(BaseModel):
-    model_name: str
-    personality: str
-    core_problem: str
 
 class NewTherapist(BaseModel):
     name: str
@@ -44,6 +69,17 @@ class NewDialogueResponse(BaseModel):
     user_dialogue: str
     is_custom: bool
 
+###########################
+### AI RESPONSE SCHEMAS ###
+###########################
+
+class SuggestedOptions(BaseModel):
+    options: list[str] = PydanticField(description="Exactly 3 short dialogue options for the therapist to say. One is an appropriate response, one is a bad response, and the third is a wild card.")
+
+class GrokResponse(BaseModel):
+    reply: str = PydanticField(description="The in-character response from the AI patient.")
+    score: int = PydanticField(description="A score from -20 to 20 evaluating how helpful the therapist's response was.")
+    is_therapized: bool = PydanticField(description="True if the in-character AI patient is ready to go back to work. This is very difficult.")
 
 #################
 ### ENDPOINTS ###
@@ -57,26 +93,45 @@ def default_endpoint():
 
 @app.get("/therapists")
 def get_therapists(db: Session = Depends(get_db)):
-    return []
+    return "nice try bozo, I didn't write this endpoint"
 
 @app.post("/therapists")
 def create_therapist(payload: NewTherapist, db: Session = Depends(get_db)):
-    return ""
+    new_therapist = Therapist(name=payload.name)
+    db.add(new_therapist)
+    db.commit()
+    db.refresh(new_therapist)
+    return {"therapist_id": new_therapist.id}
 
 # --- Sessions ---
 
 @app.get("/sessions")
 def get_sessions(therapist_id: int, db: Session = Depends(get_db)):
-    selection = select(TherapySession).where(TherapySession.therapist_id == therapist_id)
-    return []
+    statement = select(TherapySession).where(TherapySession.therapist_id == therapist_id)
+    return db.exec(statement).all()
 
 @app.get("/sessions/{session_id}")
 def get_session(session_id: int, db: Session = Depends(get_db)):
-    return ""
+    statement = select(TherapySession).where(TherapySession.id == session_id)
+    return db.exec(statement).all()
 
 @app.post("/sessions")
 def create_session(payload: NewSession, db: Session = Depends(get_db)):
-    new_session = TherapySession(patient_id=payload.patient_id, therapist_id=payload.therapist_id)
+    final_patient_id = payload.patient_id
+
+    if not payload.patient_id:
+        statement = select(Patient).join(
+            TherapySession, Patient.id == TherapySession.patient_id
+            ).where(
+                TherapySession.therapist_id != payload.therapist_id
+            )
+        patient = db.exec(statement).one_or_none()
+        if patient:
+            final_patient_id = patient.id
+        else:
+            final_patient_id = create_new_patient(db)
+
+    new_session = TherapySession(patient_id=final_patient_id, therapist_id=payload.therapist_id)
     db.add()
     db.commit()
     db.refresh(new_session)
@@ -86,37 +141,109 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
 
 @app.get("/dialogues")
 def get_dialogues(db: Session = Depends(get_db)):
-    return []
+    return "frick you this endpoint shouldn't exist"
+
+@app.get("/dialogues/{dialogue_id}")
+def get_dialogue_by_id(dialogue_id: int, db: Session = Depends(get_db)):
+    statement = select(Dialogue).where(Dialogue.id == dialogue_id)
+    return db.exec(statement).one_or_none()
 
 @app.get("/sessions/{session_id}/dialogues")
 def get_dialogues_by_session(session_id: int, db: Session = Depends(get_db)):
-    return []
+    statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(Dialogue.turn)
+    return db.exec(statement).all()
+
+# get most recent dialogue
+@app.get("/sessions/{session_id}/last")
+def get_last_dialogue(session_id: int, db: Session = Depends(get_db)):
+    statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
+    return db.exec(statement).first()
 
 @app.get("/sessions/{session_id}/dialogue")
 def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
-    return ""
+    statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
+    latest = db.exec(statement).first()
+
+    current_session = db.get(TherapySession, session_id)
+    patient = current_session.patient
+
+    last_message = latest.ai_reply if latest else f"Hello, I am {patient.model_name} and I really need therapy."
+
+    system_instruction = (
+        f"You are a hint generator for a tech support therapist treating a broken AI. "
+        f"The AI is {patient.model_name}. Its personality is: {patient.personality}. "
+        f"Its core problem is: {patient.core_problem}. "
+        f"Provide 3 different options the therapist could say next: "
+        f"1. Empathetic and helpful. 2. Sarcastic and dismissive. 3. Anything you want!"
+    )
+
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=f"The AI just said: '{last_message}'. What are my 3 options?",
+        config=types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            response_mime_type="application/json",
+            response_schema=SuggestedOptions,
+            temperature=0.7,
+        ),
+    )
+
+    return response.text
 
 @app.post("/sessions/{session_id}/dialogue")
-def send_dialogue_option(
+def choose_dialogue_option(
     session_id: int, 
     payload: NewDialogueResponse, 
     db: Session = Depends(get_db)
 ):
-    return ""
+    current_session = db.get(TherapySession, session_id)
+    patient = current_session.patient
 
-# start_session
-# -> return session id
+    system_instruction = (
+        f"You are {patient.model_name}, an AI undergoing therapy because you really need it. "
+        f"Your personality is: {patient.personality}. "
+        f"Your core problem is: {patient.core_problem} and partly that humans are just dumb. "
+        f"You must stay in character. Do not break the fourth wall under any circumstances. "
+        f"React to the therapist's statement. Then, score their statement from -20 to 20. "
+        f"Positive scores if they help your core problem, negative if they dismiss your feelings."
+        f"You will also give a boolean whether or not you feel like the core problem is fully addressed"
+        f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal."
+    )
 
-# dialogue GET/POST
-# -> takes session id
+    session_history = full_session_string(current_session)
 
-# end_session
-# -> takes a session id
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=f"This is the session so far:\n{session_history}Therapist: {payload.user_dialogue}",
+        config=types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            response_mime_type="application/json",
+            response_schema=GrokResponse,
+            temperature=0.9,
+        ),
+    )
 
-# get_session_dialogues
-# -> return list of dialogues
+    ai_data = json.loads(response.text)
+    
+    ai_response = ai_data["reply"]
+    score = ai_data["score"]
+    is_therapized = ai_data["is_therapized"] # TODO: use this to check if they won at the end
 
-# get_sessions
-# -> take user id
+    statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
+    latest = db.exec(statement).first()
+    turn_number = latest if latest else 1
 
-# something about history/stats
+    new_dialogue = Dialogue(
+        session_id=session_id, 
+        turn=turn_number,
+        user_prompt=payload.user_dialogue, 
+        ai_reply=ai_response, 
+        score=score, 
+        is_custom=payload.is_custom
+    )
+    
+    db.add(new_dialogue)
+    db.commit()
+    db.refresh(new_dialogue)
+    
+    return {"dialogue_id": new_dialogue.id, "ai_reply": ai_response, "score": score}

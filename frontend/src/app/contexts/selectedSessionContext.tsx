@@ -2,7 +2,7 @@ import { createContext, useState } from "react";
 import { fetchSession } from "../../services/modelService";
 export interface SelectedSessionProviderValue {
   selectedSessionId: number | undefined;
-  setSelectedSessionId: (sessionId: number) => unknown;
+  setSelectedSessionId: (sessionId: number | undefined) => unknown;
 }
 // eslint-disable-next-line react-refresh/only-export-components
 export const SelectedSessionContext = createContext({
@@ -17,10 +17,14 @@ const SelectedSessionProvider: React.FC<{ children: React.ReactNode }> = ({
     number | undefined
   >(undefined);
 
-  const setSelectedSessionIdHandler = (newId: number) => {
-    fetchSession(newId).then((session) => {
-      setSelectedSessionId(session.id);
-    });
+  const setSelectedSessionIdHandler = (newId: number | undefined) => {
+    if (newId == undefined) {
+      setSelectedSessionId(undefined);
+    } else {
+      fetchSession(newId).then((session) => {
+        setSelectedSessionId(session.id);
+      });
+    }
   };
 
   return (
