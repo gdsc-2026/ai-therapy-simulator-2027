@@ -35,8 +35,8 @@ class Dialogue(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     session_id: int = Field(foreign_key="therapysession.id")
     turn: int
-    ai_prompt: str
-    user_response: str
+    ai_reply: str
+    user_prompt: str
     is_custom: bool
     score: int
 
