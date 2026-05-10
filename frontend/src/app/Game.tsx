@@ -216,7 +216,7 @@ const Monitor: React.FC<{ children?: React.ReactNode; icon?: React.ReactNode }> 
 };
 
 const Game: React.FC = () => {
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>("start");
 
   return (
     <Box
@@ -232,7 +232,7 @@ const Game: React.FC = () => {
         icon={<img src={grokIcon} alt="icon" style={{ width: 28, height: 28, borderRadius: 6 }}/>}
       >
         {screen === "home" && <GameScreen/>}
-        {screen === "start" && <StartScreen onStart={() => setScreen("start")}/>}      
+        {screen === "start" && <StartScreen onStart={() => setScreen("home")}/>}      
       </Monitor>
     </Box>
   );
