@@ -29,7 +29,10 @@ class TherapySession(SQLModel, table=True):
     ### Just for Python ###
     patient: Patient = Relationship(back_populates="sessions")
     therapist: Therapist = Relationship(back_populates="sessions")
-    dialogues: list["Dialogue"] = Relationship(back_populates="session")
+    dialogues: list["Dialogue"] = Relationship(
+        back_populates="session",
+        sa_relationship_kwargs={"order_by": "Dialogue.turn"}
+    )
 
 class Dialogue(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)

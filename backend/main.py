@@ -25,8 +25,11 @@ app = FastAPI(lifespan=lifespan)
 
 client = genai.Client(api_key=OOOOO_AI_KEY_TO_DESTROY_THE_WORLD)
 
+######################
+### UTIL FUNCTIONS ###
+######################
 
-def create_new_patient(db: Session = Depends(get_db)):
+def create_new_patient(db: Session = Depends(get_db)) -> int:
     model = grok_models[random.randint(0, len(grok_models) - 1)]
     personality = personalities[random.randint(0, len(personalities) - 1)]
     core_problem = core_problems[random.randint(0, len(core_problems) - 1)]
@@ -35,6 +38,18 @@ def create_new_patient(db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_patient)
     return new_patient.id
+
+def full_session_string(session: TherapySession, db: Session = Depends(get_db)) -> str:
+    model = session.patient.model_name
+    full_text = ""
+
+    # should always be sorted by asc in the Relationship
+    for dialogue in session.dialogues:
+        full_text += f"Therapist: {dialogue.user_prompt} \n"
+        full_text += f"{model} (you): {dialogue.ai_reply} \n"
+    
+    return full_text
+
 
 #######################
 ### PAYLOAD SCHEMAS ###
@@ -195,9 +210,11 @@ def choose_dialogue_option(
         f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal."
     )
 
+    session_history = full_session_string(current_session)
+
     response = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents=f"The therapist says: '{payload.user_dialogue}'",
+        contents=f"This is the session so far:\n{session_history}Therapist: {payload.user_dialogue}",
         config=types.GenerateContentConfig(
             system_instruction=system_instruction,
             response_mime_type="application/json",
@@ -230,28 +247,3 @@ def choose_dialogue_option(
     db.refresh(new_dialogue)
     
     return {"dialogue_id": new_dialogue.id, "ai_reply": ai_response, "score": score}
-    # ai_response = "loser this isnt implemented yet"
-    # score = 6.9
-
-    # new_dialogue = Dialogue(session_id=session_id, user_prompt=payload.user_dialogue, ai_reply=ai_response, score=score, is_custom=payload.is_custom)
-    # db.add(new_dialogue)
-    # db.commit()
-    # db.refresh(new_dialogue)
-    # return {"dialogue_id": new_dialogue.id}
-
-# start_session
-# -> return session id
-
-# dialogue GET/POST
-# -> takes session id
-
-# end_session
-# -> takes a session id
-
-# get_session_dialogues
-# -> return list of dialogues
-
-# get_sessions
-# -> take user id
-
-# something about history/stats
