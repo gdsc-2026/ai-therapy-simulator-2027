@@ -20,8 +20,6 @@ export interface NewSession {
   therapist_id: number;
   patient_id: number | null;
   started_at: string;
-  is_successful: boolean | null;
-  final_score: number | null;
 }
 
 export interface NewDialogueResponse {
