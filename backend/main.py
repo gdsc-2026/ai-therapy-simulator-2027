@@ -101,7 +101,7 @@ def create_therapist(payload: NewTherapist, db: Session = Depends(get_db)):
     db.add(new_therapist)
     db.commit()
     db.refresh(new_therapist)
-    return {"therapist_id": new_therapist.id}
+    return new_therapist
 
 # --- Sessions ---
 
@@ -113,7 +113,7 @@ def get_sessions(therapist_id: int, db: Session = Depends(get_db)):
 @app.get("/sessions/{session_id}")
 def get_session(session_id: int, db: Session = Depends(get_db)):
     statement = select(TherapySession).where(TherapySession.id == session_id)
-    return db.exec(statement).all()
+    return db.exec(statement).one_or_none()
 
 @app.post("/sessions")
 def create_session(payload: NewSession, db: Session = Depends(get_db)):
@@ -125,7 +125,7 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
             ).where(
                 TherapySession.therapist_id != payload.therapist_id
             )
-        patient = db.exec(statement).one_or_none()
+        patient = db.exec(statement).first()
         if patient:
             final_patient_id = patient.id
         else:
@@ -135,7 +135,7 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
     db.add(new_session)
     db.commit()
     db.refresh(new_session)
-    return {"session_id": new_session.id}
+    return new_session
 
 # --- Dialogues ---
 
@@ -188,7 +188,11 @@ def get_next_dialogue(session_id: int, db: Session = Depends(get_db)):
         ),
     )
 
-    return response.text
+    ai_data = json.loads(response.text)
+    return {
+        "session_id": session_id,
+        "ai_generated_responses": ai_data["options"],
+    }
 
 @app.post("/sessions/{session_id}/dialogue")
 def choose_dialogue_option(
@@ -233,7 +237,7 @@ def choose_dialogue_option(
 
     statement = select(Dialogue).where(Dialogue.session_id == session_id).order_by(desc(Dialogue.turn))
     latest = db.exec(statement).first()
-    turn_number = latest if latest else 1
+    turn_number = (latest.turn + 1) if latest else 1
 
     new_dialogue = Dialogue(
         session_id=session_id, 

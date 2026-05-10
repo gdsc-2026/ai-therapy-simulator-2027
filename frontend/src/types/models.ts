@@ -23,8 +23,8 @@ export interface Dialogue {
   id: number;
   session_id: number;
   turn: number;
-  ai_prompt: string;
-  user_response: string;
+  ai_reply: string;
+  user_prompt: string;
   is_custom: boolean;
   score: number;
 }
