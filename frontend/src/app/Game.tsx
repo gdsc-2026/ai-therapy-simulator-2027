@@ -1,14 +1,17 @@
 import { Box } from "@mui/material";
 import grokIcon from "../assets/grokIcon.png";
+import StartScreen from "./StartScreen";
+import { useState } from "react";
 import GameScreen from "./GameScreen";
 
+type Screen = "home" | "start";
 
 const Monitor: React.FC<{ children?: React.ReactNode; icon?: React.ReactNode }> = ({
-  children,
-  icon,
+    children,
+    icon,
 }) => {
-  return (
-    <Box
+
+    return (<Box
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -213,6 +216,8 @@ const Monitor: React.FC<{ children?: React.ReactNode; icon?: React.ReactNode }> 
 };
 
 const Game: React.FC = () => {
+  const [screen, setScreen] = useState<Screen>("home");
+
   return (
     <Box
       sx={{
@@ -226,7 +231,8 @@ const Game: React.FC = () => {
       <Monitor
         icon={<img src={grokIcon} alt="icon" style={{ width: 28, height: 28, borderRadius: 6 }}/>}
       >
-        {<GameScreen />}
+        {screen === "home" && <GameScreen/>}
+        {screen === "start" && <StartScreen onStart={() => setScreen("start")}/>}      
       </Monitor>
     </Box>
   );
