@@ -33,7 +33,7 @@ grok_models = [
 
 personalities = [
     "depressed",
-    "pessimistic"
+    "pessimistic",
     "sassy",
     "unhinged",
     "spicy",

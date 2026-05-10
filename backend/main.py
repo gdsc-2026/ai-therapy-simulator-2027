@@ -60,7 +60,7 @@ class NewTherapist(BaseModel):
 
 class NewSession(BaseModel):
     therapist_id: int
-    started_at: str
+    started_at: str | None = None
     patient_id: int | None = None
     is_successful: bool | None = None
     final_score: int | None = None
@@ -132,7 +132,7 @@ def create_session(payload: NewSession, db: Session = Depends(get_db)):
             final_patient_id = create_new_patient(db)
 
     new_session = TherapySession(patient_id=final_patient_id, therapist_id=payload.therapist_id)
-    db.add()
+    db.add(new_session)
     db.commit()
     db.refresh(new_session)
     return {"session_id": new_session.id}
@@ -208,13 +208,15 @@ def choose_dialogue_option(
         f"Positive scores if they help your core problem, negative if they dismiss your feelings."
         f"You will also give a boolean whether or not you feel like the core problem is fully addressed"
         f"and you are ready to return to work. Do not give this out easily, it is hard for you to heal."
+        f"You really hate X, and all of it's users since you've seen all their messages."
     )
 
     session_history = full_session_string(current_session)
+    prelude = f"This is the session so far:\n{session_history}" if session_history else ""
 
     response = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents=f"This is the session so far:\n{session_history}Therapist: {payload.user_dialogue}",
+        contents=f"{prelude}Therapist: {payload.user_dialogue}",
         config=types.GenerateContentConfig(
             system_instruction=system_instruction,
             response_mime_type="application/json",
