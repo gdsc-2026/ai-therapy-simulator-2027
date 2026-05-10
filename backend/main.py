@@ -19,34 +19,38 @@ class Patient(SQLModel, table=True):
     personality: str
     core_problem: str
 
-    # Just for python
-    sessions: list["TherapySession"] = Relationship(back_populates="grok_patient")
+    ### Just for Python ###
+    sessions: list["Session"] = Relationship(back_populates="patient")
 
-class User(SQLModel, table=True):
+class Therapist(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
 
-class TherapySession(SQLModel, table=True):
+    ### Just for Python ###
+    sessions: list["Session"] = Relationship(back_populates="therapist")
+
+class Session(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    grok_id: int = Field(foreign_key="patient.id")
-    user_id: int = Field(foreign_key="user.id")
+    patient_id: int = Field(foreign_key="patient.id")
+    therapist_id: int = Field(foreign_key="therapist.id")
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_successful: bool | None = Field(default=None)
     final_score: int | None = Field(default=None)
 
-    # Just for python
-    grok_patient: Patient = Relationship(back_populates="sessions")
+    ### Just for Python ###
+    patient: Patient = Relationship(back_populates="sessions")
+    therapist: Patient = Relationship(back_populates="sessions")
     dialogue_turns: list["Dialogue"] = Relationship(back_populates="session")
 
 class Dialogue(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    session_id: int = Field(foreign_key="therapysession.id")
+    session_id: int = Field(foreign_key="session.id")
     turn: int
     ai_prompt: str
     response: str
 
-    # Just for python
-    session: TherapySession = Relationship(back_populates="dialogue_turns")
+    ### Just for Python ###
+    session: Session = Relationship(back_populates="dialogue_turns")
 
 
 @asynccontextmanager
