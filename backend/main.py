@@ -3,11 +3,11 @@ from fastapi import FastAPI
 from sqlmodel import Field, Session, SQLModel, create_engine
 from dotenv import load_dotenv
 import os
-
+from google import genai
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
-
+OOOOO_AI_KEY_TO_DESTROY_THE_WORLD = os.getenv("GOOGLE_AI_KEY")
 
 engine = create_engine(DATABASE_URL)
 
@@ -29,4 +29,6 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 def default_endpoint():
+    client = genai.Client(api_key=OOOOO_AI_KEY_TO_DESTROY_THE_WORLD)
+    
     return {"You": "Loser"}
